@@ -12,6 +12,7 @@ int LEDpin = 13;
 int LEDprev = LOW;
 
 int HZ = 1;
+int tempo = 30;
 
 float BAT_HIGH = 14.4; // Stop charging when battery reach this voltage
 float BAT_THRESHOLD = 13.8; // Restart charging when battery reach this voltage
@@ -53,6 +54,9 @@ int LCDlines = 4;
 // initialize the library with the numbers of the interface pins
 //LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+/* Watchdog */
+#include <avr/wdt.h>
 
 /* This function was copied from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1164927646 */
 char *ftoa(char *a, double f, int precision)
@@ -251,6 +255,9 @@ void setup(){
   
   // Relays
   initRelays();
+  
+  // Init watchdog
+  wdt_enable(WDTO_8S);
 }
 
 void die() {  
@@ -264,6 +271,8 @@ void die() {
 }
   
 void loop(){
+  wdt_reset();
+  
   blinkLED();
   displayVoltages();
   displayVoltages2();
@@ -271,7 +280,8 @@ void loop(){
   displayUptime();
  
   // chaser(); // Relay testing
-  controlCharging();
+  if (millis() % tempo == 0)
+    controlCharging();
   
   delay(1000/HZ);
   
