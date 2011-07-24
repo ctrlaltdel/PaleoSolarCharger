@@ -4,7 +4,7 @@
   
   Paleo 2011
   
-  François Deppierraz <francois@ctrlaltdel.ch>
+  Copyright François Deppierraz <francois@ctrlaltdel.ch>
   
 */
 
@@ -16,7 +16,7 @@ int tempo = 30;
 
 float BAT_HIGH = 14.4; // Stop charging when battery reach this voltage
 float BAT_THRESHOLD = 13.8; // Restart charging when battery reach this voltage
-float BAT_LOW = 11.0; // When a battery voltage decrease under this value, raise an alert and stop everything
+float BAT_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
 
 //char voltagePins[] = { A0, A1, A2, A3, A4 };
 char voltagePins[] = { A4, A3, A2 };
