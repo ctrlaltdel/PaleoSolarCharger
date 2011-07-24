@@ -233,6 +233,14 @@ void controlCharging(void) {
   checkBatteryCharging(BAT3, DCDC1_ID);
 }
 
+void securityCheck(void) {
+  for (int i=0; i < countVoltagePins; i++) {
+    if (getVoltage(i) > BAT_HIGH) {
+      die();
+    }
+  }
+}
+
 void setup(){
   // Voltage sensors
 
@@ -282,6 +290,8 @@ void loop(){
   // chaser(); // Relay testing
   if (millis() % tempo == 0)
     controlCharging();
+    
+  securityCheck();
   
   delay(1000/HZ);
   
