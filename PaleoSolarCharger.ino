@@ -1,10 +1,11 @@
 /*
 
-  SolarCharger
+  PaleoSolarCharger
   
-  Paleo 2011
+  Paleo 2011-2012
   
-  Copyright François Deppierraz <francois@ctrlaltdel.ch>
+  Copyleft François Deppierraz <francois@ctrlaltdel.ch>
+  GPL License apply
   
 */
 
