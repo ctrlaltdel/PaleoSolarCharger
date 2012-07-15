@@ -13,7 +13,6 @@ int LEDpin = 13;
 int LEDprev = LOW;
 
 int HZ = 1;
-int tempo = 10;
 
 float BAT_HIGH = 14.4; // Stop charging when battery reach this voltage
 float BAT_THRESHOLD = 13.8; // Restart charging when battery reach this voltage
@@ -61,21 +60,6 @@ LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 /* Watchdog */
 #include <avr/wdt.h>
-
-/* This function was copied from http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1164927646 */
-char *ftoa(char *a, double f, int precision)
-{
-  long p[] = {0,10,100,1000,10000,100000,1000000,10000000,100000000};
-  
-  char *ret = a;
-  long heiltal = (long)f;
-  itoa(heiltal, a, 10);
-  while (*a != '\0') a++;
-  *a++ = '.';
-  long desimal = abs((long)((f - heiltal) * p[precision]));
-  itoa(desimal, a, 10);
-  return ret;
-}
 
 float getVoltage(int id) {
   float voltage = readVoltage(id);
@@ -135,39 +119,27 @@ int getRelayState(int id) {
   return relaysState[id]; 
 }
 
-void displayVoltages2(){
-  char buffer[BUFSIZE];
-
-  lcd.setCursor(0, 0);
-  
-  for (int i=0; i < countVoltagePins; i++) {
-    ftoa(buffer, readVoltage(i), 1);
-    lcd.print(buffer);
-    lcd.print(" ");
-  }
-}
-
-void displayVoltages(){
+void displayVoltages(float BAT1, float BAT2, float BAT3){
   char buffer[BUFSIZE];
 
   lcd.setCursor(0, 1);
   
-  for (int i=0; i < countVoltagePins; i++) {
-    ftoa(buffer, getVoltage(i), 1);
-    lcd.print(buffer);
-    lcd.print(" ");
-  }
+  lcd.print(BAT1);
+  lcd.print(" ");
+  lcd.print(BAT2);
+  lcd.print(" ");
+  lcd.print(BAT3);
+  lcd.print(" ");
 
   /* Serial debug */
 
   Serial.print(millis());
   Serial.print(",");
-  
-  for (int i=0; i < countVoltagePins; i++) {
-    Serial.print(getVoltage(i));
-    Serial.print(",");
-  }
-  
+  Serial.print(BAT1);
+  Serial.print(",");
+  Serial.print(BAT2);
+  Serial.print(",");
+  Serial.print(BAT3);
   Serial.println();
 }
 
@@ -204,8 +176,7 @@ void checkBatteryCharging(float voltage, int relay_id) {
   int relay_status = getRelayState(relay_id);
   
   Serial.print("checkBatteryCharging: ");
-  ftoa(buffer, voltage, 2);
-  Serial.print(buffer);
+  Serial.print(voltage);
   Serial.print(" ");
   Serial.print(relay_status);
   Serial.print(" ");
@@ -218,38 +189,31 @@ void checkBatteryCharging(float voltage, int relay_id) {
     Serial.println("Relay off");
     relayOff(relay_id);
   } else if (relay_status == LOW) {
-    if (voltage < BAT_HIGH) {
+    if (voltage < BAT_THRESHOLD) {
       Serial.println("Relay on");
       relayOn(relay_id);
     } else {
       Serial.println("no charging needed");
     }
   } else {
-    Serial.println("Nothing");
+    Serial.println("charging");
   }
 }
 
-void controlCharging(void) {
-  float BAT1 = getVoltage(BAT1_ID);
-  float BAT2 = getVoltage(BAT2_ID);
-  float BAT3 = getVoltage(BAT3_ID);
-
+void controlCharging(float BAT1, float BAT2, float BAT3) {
   checkBatteryCharging(BAT1, PANEL1_ID);
   checkBatteryCharging(BAT2, PANEL2_ID);
   checkBatteryCharging(BAT3, DCDC1_ID);
 }
 
-void securityCheck(void) {
-  for (int i=0; i < countVoltagePins; i++) {
-    if (getVoltage(i) > BAT_ALARM_HIGH) {
-      die();
-    }
+void securityCheck(float BAT1, float BAT2, float BAT3) {
+  if (BAT1 > BAT_ALARM_HIGH || BAT2 > BAT_ALARM_HIGH || BAT3 > BAT_ALARM_HIGH) {
+    die();
   }
 }
 
 void setup(){
   // Voltage sensors
-
   for (int i; i < countVoltagePins; i++) {
     pinMode(voltagePins[i], INPUT);
   }
@@ -265,7 +229,7 @@ void setup(){
   
   // Welcome
   lcd.setCursor(0, 0);
-  lcd.print("Paleo 2011  2012");
+  lcd.print("Paleo 2012");
   
   // Relays
   initRelays();
@@ -291,17 +255,22 @@ void loop(){
   wdt_reset();
   
   blinkLED();
-  displayVoltages();
-  displayVoltages2();
+  
+  // Get battery voltage
+  float BAT1 = getVoltage(BAT1_ID);
+  float BAT2 = getVoltage(BAT2_ID);
+  float BAT3 = getVoltage(BAT3_ID);
+
+  displayVoltages(BAT1, BAT2, BAT3);
   displayRelaysState();
   displayUptime();
- 
-  if (millis() % tempo == 0)
-    controlCharging();
-    
-  securityCheck();
+
+  securityCheck(BAT1, BAT2, BAT3);
+  
+  controlCharging(BAT1, BAT2, BAT3);
   
   delay(1000/HZ);
-  
-  //die();
 }
+
+
+
