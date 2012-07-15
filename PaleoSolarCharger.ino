@@ -13,15 +13,18 @@ int LEDpin = 13;
 int LEDprev = LOW;
 
 int HZ = 1;
-int tempo = 30;
+int tempo = 10;
 
 float BAT_HIGH = 14.4; // Stop charging when battery reach this voltage
 float BAT_THRESHOLD = 13.8; // Restart charging when battery reach this voltage
-float BAT_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
+float BAT_ALARM_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
+float BAT_ALARM_HIGH = 15.0;
 
 //char voltagePins[] = { A0, A1, A2, A3, A4 };
 char voltagePins[] = { A4, A3, A2 };
 int countVoltagePins = 3;
+
+int ALARM_PIN = 8;
 
 int BAT1_ID = 0;
 int BAT2_ID = 1;
@@ -40,7 +43,7 @@ float H = (9910.0/(98300.0 + 9910.0));
 float correction[] = { 12.36/11.9, 25.3/25.0, 38.3/37.6 };
 
 //char relays[] = { 8, 9, 10, 11, 12 };
-char relays[] = { 12, 11, 9 };
+char relays[] = { 12, 11, 10 };
 int relaysState[] = { LOW, LOW, LOW };
 int countRelays = 3;
 
@@ -207,7 +210,9 @@ void checkBatteryCharging(float voltage, int relay_id) {
   Serial.print(relay_status);
   Serial.print(" ");
   
-  if (voltage <= BAT_LOW) {
+  if (voltage <= BAT_ALARM_LOW) {
+    die();
+  } else if (voltage >= BAT_ALARM_HIGH) {
     die();
   } else if (relay_status == HIGH && voltage >= BAT_HIGH) {
     Serial.println("Relay off");
@@ -236,7 +241,7 @@ void controlCharging(void) {
 
 void securityCheck(void) {
   for (int i=0; i < countVoltagePins; i++) {
-    if (getVoltage(i) > BAT_HIGH) {
+    if (getVoltage(i) > BAT_ALARM_HIGH) {
       die();
     }
   }
@@ -260,7 +265,7 @@ void setup(){
   
   // Welcome
   lcd.setCursor(0, 0);
-  lcd.print("Paleo 2011  Bamboule");
+  lcd.print("Paleo 2011  2012");
   
   // Relays
   initRelays();
@@ -274,8 +279,11 @@ void die() {
     relayOff(i);
   
   lcd.setCursor(0, 0);
-  lcd.print("I'm not quite dead, just resting");
+  lcd.print("Casse...");
+
+  digitalWrite(ALARM_PIN, HIGH);
   
+  wdt_disable();
   exit(1);
 }
   
@@ -288,7 +296,6 @@ void loop(){
   displayRelaysState();
   displayUptime();
  
-  // chaser(); // Relay testing
   if (millis() % tempo == 0)
     controlCharging();
     
