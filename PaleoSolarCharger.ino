@@ -14,8 +14,8 @@ int LEDprev = LOW;
 
 int HZ = 1;
 
-float BAT_HIGH = 14.4; // Stop charging when battery reach this voltage
-float BAT_THRESHOLD = 13.8; // Restart charging when battery reach this voltage
+float BAT_HIGH = 13.8; // Stop charging when battery reach this voltage
+float BAT_THRESHOLD = 13.4; // Restart charging when battery reach this voltage
 float BAT_ALARM_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
 float BAT_ALARM_HIGH = 15.0;
 
