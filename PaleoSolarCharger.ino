@@ -15,7 +15,7 @@ int LEDprev = LOW;
 int HZ = 1;
 
 float BAT_HIGH = 13.8; // Stop charging when battery reach this voltage
-float BAT_THRESHOLD = 13.4; // Restart charging when battery reach this voltage
+float BAT_THRESHOLD = 13.0; // Restart charging when battery reach this voltage
 float BAT_ALARM_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
 float BAT_ALARM_HIGH = 15.0;
 
@@ -42,7 +42,7 @@ float H = (9910.0/(98300.0 + 9910.0));
 float correction[] = { 12.36/11.9, 25.3/25.0, 38.3/37.6 };
 
 //char relays[] = { 8, 9, 10, 11, 12 };
-char relays[] = { 12, 11, 10 };
+char relays[] = { 12, 8, 11 };
 int relaysState[] = { LOW, LOW, LOW };
 int countRelays = 3;
 
@@ -160,12 +160,15 @@ void displayRelaysState(void) {
 }
 
 void chaser(void) {
-  for (int i=0; i < 1; i++) {
+  for (int i=0; i < countVoltagePins; i++) {
     if (getRelayState(i) == HIGH) {
       relayOff(i);
     } else {
       relayOn(i);
     }
+    displayRelaysState();
+    displayUptime();
+    delay(1000);
   }
 }
 
@@ -235,7 +238,7 @@ void setup(){
   initRelays();
   
   // Init watchdog
-  wdt_enable(WDTO_8S);
+  //wdt_enable(WDTO_8S);
 }
 
 void die() {  
@@ -250,7 +253,7 @@ void die() {
   wdt_disable();
   exit(1);
 }
-  
+
 void loop(){
   wdt_reset();
   
@@ -266,8 +269,9 @@ void loop(){
   displayUptime();
 
   securityCheck(BAT1, BAT2, BAT3);
-  
   controlCharging(BAT1, BAT2, BAT3);
+
+  //chaser();
   
   delay(1000/HZ);
 }
