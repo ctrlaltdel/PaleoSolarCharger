@@ -9,7 +9,7 @@
   
 */
 
-int LEDpin = 13;
+int LEDpin = 9;
 int LEDprev = LOW;
 
 int HZ = 1;
@@ -19,11 +19,8 @@ float BAT_THRESHOLD = 13.0; // Restart charging when battery reach this voltage
 float BAT_ALARM_LOW = 5.0; // When a battery voltage decrease under this value, raise an alert and stop everything
 float BAT_ALARM_HIGH = 15.0;
 
-//char voltagePins[] = { A0, A1, A2, A3, A4 };
 char voltagePins[] = { A4, A3, A2 };
 int countVoltagePins = 3;
-
-int ALARM_PIN = 8;
 
 int BAT1_ID = 0;
 int BAT2_ID = 1;
@@ -33,16 +30,10 @@ int PANEL1_ID = 0;
 int PANEL2_ID = 1;
 int DCDC1_ID = 2;
 
-/*
-float R1[] = {98300.0, 98600.0, 98400.0, 98400.0, 98400.0};
-float R2[] = {9910.0, 9930.0, 9940.0, 9910.0, 9920.0};
-*/
-
 float H = (9910.0/(98300.0 + 9910.0));
 float correction[] = { 12.36/11.9, 25.3/25.0, 38.3/37.6 };
 
-//char relays[] = { 8, 9, 10, 11, 12 };
-char relays[] = { 12, 8, 11 };
+char relays[] = { 0, 1, 8 };
 int relaysState[] = { LOW, LOW, LOW };
 int countRelays = 3;
 
@@ -55,7 +46,6 @@ int LCDlines = 4;
 #include <LiquidCrystal.h>
 
 // initialize the library with the numbers of the interface pins
-//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 /* Watchdog */
@@ -247,8 +237,6 @@ void die() {
   
   lcd.setCursor(0, 0);
   lcd.print("Casse...");
-
-  digitalWrite(ALARM_PIN, HIGH);
   
   wdt_disable();
   exit(1);
