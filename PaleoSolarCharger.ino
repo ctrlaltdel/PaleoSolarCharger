@@ -9,6 +9,9 @@
   
 */
 
+#define DEBUG 1
+#define TEST 1
+
 int LEDpin = 9;
 int LEDprev = LOW;
 
@@ -123,6 +126,7 @@ void displayVoltages(float BAT1, float BAT2, float BAT3){
 
   /* Serial debug */
 
+  /*
   Serial.print(millis());
   Serial.print(",");
   Serial.print(BAT1);
@@ -131,6 +135,7 @@ void displayVoltages(float BAT1, float BAT2, float BAT3){
   Serial.print(",");
   Serial.print(BAT3);
   Serial.println();
+  */
 }
 
 void displayUptime(void){
@@ -149,13 +154,37 @@ void displayRelaysState(void) {
   
 }
 
-void chaser(void) {
+void test(void) {
+  lcd.setCursor(0, 0);
+  lcd.print("TEST Mode      ");
+  
+  lcd.setCursor(0, 1);
+  lcd.print("ON     ");
+  
   for (int i=0; i < countVoltagePins; i++) {
-    if (getRelayState(i) == HIGH) {
-      relayOff(i);
-    } else {
-      relayOn(i);
-    }
+    relayOn(i);
+  }
+  
+  displayRelaysState();
+  displayUptime();
+  delay(5000);
+  
+  lcd.setCursor(0, 1);
+  lcd.print("OFF    ");
+  
+  for (int i=0; i < countVoltagePins; i++) {
+    relayOff(i);
+  }
+  
+  displayRelaysState();
+  displayUptime();
+  delay(5000);
+  
+  lcd.setCursor(0, 1);
+  lcd.print("CHASER");
+  
+  for (int i=0; i < countVoltagePins; i++) {
+    relayOn(i);
     displayRelaysState();
     displayUptime();
     delay(1000);
@@ -168,28 +197,30 @@ void checkBatteryCharging(float voltage, int relay_id) {
   
   int relay_status = getRelayState(relay_id);
   
+  /*
   Serial.print("checkBatteryCharging: ");
   Serial.print(voltage);
   Serial.print(" ");
   Serial.print(relay_status);
   Serial.print(" ");
+  */
   
   if (voltage <= BAT_ALARM_LOW) {
     die();
   } else if (voltage >= BAT_ALARM_HIGH) {
     die();
   } else if (relay_status == HIGH && voltage >= BAT_HIGH) {
-    Serial.println("Relay off");
+    //Serial.println("Relay off");
     relayOff(relay_id);
   } else if (relay_status == LOW) {
     if (voltage < BAT_THRESHOLD) {
-      Serial.println("Relay on");
+      //Serial.println("Relay on");
       relayOn(relay_id);
     } else {
-      Serial.println("no charging needed");
+      //Serial.println("no charging needed");
     }
   } else {
-    Serial.println("charging");
+    //Serial.println("charging");
   }
 }
 
@@ -215,7 +246,7 @@ void setup(){
   pinMode(LEDpin, OUTPUT);
   
   // Serial port is used for debug
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
   // LCD
   lcd.begin(LCDcols, LCDlines);
@@ -226,12 +257,10 @@ void setup(){
   
   // Relays
   initRelays();
-  
-  // Init watchdog
-  //wdt_enable(WDTO_8S);
 }
 
 void die() {  
+#if not DEBUG
   for (int i=0; i < countRelays; i++)
     relayOff(i);
   
@@ -240,13 +269,15 @@ void die() {
   
   wdt_disable();
   exit(1);
+#endif
 }
 
 void loop(){
-  wdt_reset();
-  
+  #if TEST
+  test();
+  #else
   blinkLED();
-  
+
   // Get battery voltage
   float BAT1 = getVoltage(BAT1_ID);
   float BAT2 = getVoltage(BAT2_ID);
@@ -255,14 +286,10 @@ void loop(){
   displayVoltages(BAT1, BAT2, BAT3);
   displayRelaysState();
   displayUptime();
-
+  
   securityCheck(BAT1, BAT2, BAT3);
   controlCharging(BAT1, BAT2, BAT3);
 
-  //chaser();
-  
   delay(1000/HZ);
+  #endif
 }
-
-
-
