@@ -9,8 +9,8 @@
   
 */
 
-#define DEBUG 1
-#define TEST 1
+#define DEBUG 0
+#define TEST 0
 
 int LEDpin = 9;
 int LEDprev = LOW;
